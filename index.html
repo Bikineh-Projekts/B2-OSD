@@ -95,6 +95,12 @@
             0%, 100% { opacity: 1; }
             50% { opacity: .8; }
         }
+        
+        .corrected-version {
+            background-color: #f0fdf4;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-gray-50 to-blue-50">
@@ -311,11 +317,26 @@
                     </div>
                 </div>
 
+                <!-- Korrigierte Version -->
+                <div class="corrected-version rounded-2xl shadow-xl p-8">
+                    <h2 class="text-2xl font-bold text-green-800 mb-6 flex items-center">
+                        <span class="bg-green-100 text-green-600 w-10 h-10 rounded-full flex items-center justify-center mr-3">✏️</span>
+                        Korrigierte Version deines Textes
+                    </h2>
+                    
+                    <div class="p-6 bg-white rounded-lg border border-green-300">
+                        <pre id="korrigierteVersion" class="whitespace-pre-wrap text-gray-700 leading-relaxed"></pre>
+                        <div class="mt-4 text-sm text-gray-600">
+                            <p><strong>Verbesserungen:</strong> Satzzeichen korrigiert, Leerzeichen angepasst, formelle Bausteine ergänzt</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Redemittel -->
                 <div class="bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-300 rounded-2xl shadow-xl p-8">
                     <h2 class="text-2xl font-bold text-teal-900 mb-6 flex items-center">
                         <span class="bg-teal-100 text-teal-600 w-10 h-10 rounded-full flex items-center justify-center mr-3">💬</span>
-                        Redemittel für B2-Niveau
+                        Passende Redemittel für DEINEN Text
                     </h2>
                     
                     <div id="redemittel" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -436,80 +457,139 @@
             updateLanguageCheck();
         });
 
-        // Redemittel Pool
-        const redemittelPool = [
-            {
-                kategorie: "Ausdruck von Meinungen",
-                phrases: [
-                    "Meiner Ansicht nach...",
-                    "Ich bin der Meinung, dass...",
-                    "Aus meiner Sicht...",
-                    "Ich vertrete die Auffassung, dass..."
-                ]
-            },
-            {
-                kategorie: "Argumentation",
-                phrases: [
-                    "Einerseits... andererseits...",
-                    "Darüber hinaus...",
-                    "Ein weiterer Punkt ist...",
-                    "Außerdem sollte erwähnt werden..."
-                ]
-            },
-            {
-                kategorie: "Vergleiche",
-                phrases: [
-                    "Im Vergleich zu...",
-                    "Im Gegensatz dazu...",
-                    "Während...",
-                    "Anders als bei..."
-                ]
-            },
-            {
-                kategorie: "Zusammenfassung",
-                phrases: [
-                    "Zusammenfassend lässt sich sagen...",
-                    "Abschließend...",
-                    "Alles in allem...",
-                    "Als Fazit kann festgehalten werden..."
-                ]
-            },
-            {
-                kategorie: "Begründung",
-                phrases: [
-                    "Das liegt daran, dass...",
-                    "Aus diesem Grund...",
-                    "Daher...",
-                    "Deshalb..."
-                ]
-            },
-            {
-                kategorie: "Höfliche Bitten",
-                phrases: [
-                    "Ich wäre Ihnen dankbar, wenn...",
-                    "Ich bitte Sie darum,...",
-                    "Könnten Sie mir bitte mitteilen...",
-                    "Es wäre nett, wenn..."
-                ]
-            }
-        ];
-
-        function getRandomRedemittel() {
-            const randomKategorien = [...redemittelPool]
-                .sort(() => Math.random() - 0.5)
-                .slice(0, 4);
+        // ========= KORRIGIERTE VERSION FUNKTION =========
+        function korrigiereText(text) {
+            let korrigiert = text;
             
-            return randomKategorien.map(kategorie => {
-                return {
-                    kategorie: kategorie.kategorie,
-                    phrases: kategorie.phrases
-                };
+            // 1. Satzzeichen korrigieren
+            korrigiert = korrigiert.replace(/\s+([,.!?;:])/g, "$1");
+            korrigiert = korrigiert.replace(/([,.!?;:])([^\s\n])/g, "$1 $2");
+            
+            // 2. Doppelte Leerzeichen entfernen
+            korrigiert = korrigiert.replace(/[ \t]{2,}/g, " ");
+            
+            // 3. Großschreibung nach Punkten
+            korrigiert = korrigiert.replace(/([.!?])\s+([a-z])/g, function(match, p1, p2) {
+                return p1 + " " + p2.toUpperCase();
             });
+            
+            // 4. Einfache typische Fehler korrigieren
+            korrigiert = korrigiert.replace(/\bIch\s+will\b/gi, "Ich möchte");
+            korrigiert = korrigiert.replace(/\bich\s+will\b/g, "ich möchte");
+            korrigiert = korrigiert.replace(/\bIch\s+brauche\b/gi, "Ich benötige");
+            korrigiert = korrigiert.replace(/\bseit\s+(\d+)\s+Jahr\b/gi, "seit $1 Jahren");
+            
+            // 5. Formelle Anrede prüfen und ggf. ergänzen
+            if (!/^sehr geehrte/i.test(korrigiert) && text.length > 50) {
+                korrigiert = korrigiert.replace(/^(hallo|liebe|guten tag)/i, "Sehr geehrte Damen und Herren,");
+            }
+            
+            // 6. Absätze formatieren
+            korrigiert = korrigiert.replace(/\n\s*\n/g, "\n\n");
+            
+            return korrigiert.trim();
         }
 
-        // Starte Bewertung
+        // ========= PASSENDE REDEMITTEL FÜR TEXT =========
+        function getPassendeRedemittel(text) {
+            const textLower = text.toLowerCase();
+            const redemittelKategorien = [];
+            
+            // Prüfen, welche Redemittel-Kategorien passend sind
+            if (textLower.includes('meinung') || textLower.includes('denke') || textLower.includes('glaube')) {
+                redemittelKategorien.push({
+                    kategorie: "Meinung ausdrücken",
+                    phrases: [
+                        "Meiner Ansicht nach könnte man hier ergänzen...",
+                        "Ich bin der Auffassung, dass dieser Punkt wichtig ist...",
+                        "Aus meiner Sicht wäre es sinnvoll...",
+                        "Ich vertrete die Meinung, dass..."
+                    ]
+                });
+            }
+            
+            if (textLower.includes('weil') || textLower.includes('denn') || textLower.includes('da')) {
+                redemittelKategorien.push({
+                    kategorie: "Begründungen",
+                    phrases: [
+                        "Das liegt daran, dass...",
+                        "Aus diesem Grund sollte man...",
+                        "Daher ist es wichtig zu beachten...",
+                        "Deshalb empfehle ich..."
+                    ]
+                });
+            }
+            
+            if (textLower.includes('einerseits') || textLower.includes('andererseits') || 
+                textLower.split(' ').length > 150) {
+                redemittelKategorien.push({
+                    kategorie: "Argumentation verbessern",
+                    phrases: [
+                        "Einerseits..., andererseits...",
+                        "Darüber hinaus könnte man anführen...",
+                        "Ein weiterer wichtiger Aspekt ist...",
+                        "Nicht zu vergessen ist der Punkt..."
+                    ]
+                });
+            }
+            
+            if (textLower.includes('brief') || textLower.includes('email') || 
+                /sehr geehrte|mit freundlichen grüßen/i.test(text)) {
+                redemittelKategorien.push({
+                    kategorie: "Formelle Kommunikation",
+                    phrases: [
+                        "Ich wäre Ihnen dankbar, wenn Sie...",
+                        "Ich bitte Sie höflichst darum,...",
+                        "Könnten Sie mir bitte mitteilen,...",
+                        "Es wäre sehr hilfreich, wenn..."
+                    ]
+                });
+            }
+            
+            if (textLower.includes('zusammenfass') || textLower.includes('fazit') || 
+                textLower.includes('schluss')) {
+                redemittelKategorien.push({
+                    kategorie: "Zusammenfassung",
+                    phrases: [
+                        "Zusammenfassend lässt sich sagen...",
+                        "Abschließend möchte ich betonen...",
+                        "Alles in allem kann man feststellen...",
+                        "Als Fazit ist festzuhalten..."
+                    ]
+                });
+            }
+            
+            // Standard-Redemittel, falls keine spezifischen gefunden wurden
+            if (redemittelKategorien.length === 0) {
+                redemittelKategorien.push(
+                    {
+                        kategorie: "Für deinen Text passend",
+                        phrases: [
+                            "Hier könnte man präziser formulieren: '...'",
+                            "Eine bessere Formulierung wäre: '...'",
+                            "Statt dessen könnte man schreiben: '...'",
+                            "Formeller ausgedrückt: '...'"
+                        ]
+                    },
+                    {
+                        kategorie: "Text verbessern",
+                        phrases: [
+                            "Verwende mehr Konnektoren wie 'deshalb' oder 'außerdem'",
+                            "Baue komplexere Satzstrukturen ein",
+                            "Nutze spezifischere Substantive",
+                            "Vermeide Wiederholungen durch Synonyme"
+                        ]
+                    }
+                );
+            }
+            
+            return redemittelKategorien.slice(0, 4); // Maximal 4 Kategorien zeigen
+        }
+
+        // ========= BEWERTUNGSLÖSUNG =========
         function startBewertung() {
             const text = textInput.value.trim();
+            const task = document.getElementById('task').value.trim();
             
             if (!text) {
                 alert('Bitte geben Sie einen Text ein!');
@@ -532,8 +612,12 @@
             
             // Simuliere Verarbeitungszeit
             setTimeout(() => {
-                const result = dualBewertung(text);
-                ergebnisseAnzeigen(result);
+                const result = dualBewertung(text, task);
+                const korrigierterText = korrigiereText(text);
+                const passendeRedemittel = getPassendeRedemittel(text);
+                
+                ergebnisseAnzeigen(result, korrigierterText, passendeRedemittel);
+                
                 btn.innerHTML = '🎯 Jetzt von beiden Prüfern bewerten lassen';
                 btn.disabled = false;
                 document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
@@ -541,7 +625,7 @@
         }
 
         // Duale Bewertungslogik
-        function dualBewertung(text) {
+        function dualBewertung(text, task) {
             const words = text.split(/\s+/).length;
             const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
             
@@ -628,7 +712,7 @@
         }
 
         // Ergebnisse anzeigen
-        function ergebnisseAnzeigen(result) {
+        function ergebnisseAnzeigen(result, korrigierterText, passendeRedemittel) {
             // Ergebnisse sichtbar machen
             document.getElementById('results').classList.remove('hidden');
             
@@ -680,9 +764,11 @@
                 bestandenBox.textContent = '❌ NICHT BESTANDEN (unter 8/15 Punkten)';
             }
             
-            // Redemittel (zufällig für jede Bewertung)
-            const randomRedemittel = getRandomRedemittel();
-            document.getElementById('redemittel').innerHTML = randomRedemittel.map(kategorie => `
+            // Korrigierte Version anzeigen
+            document.getElementById('korrigierteVersion').textContent = korrigierterText;
+            
+            // Passende Redemittel anzeigen
+            document.getElementById('redemittel').innerHTML = passendeRedemittel.map(kategorie => `
                 <div class="bg-teal-100 p-4 rounded-lg">
                     <p class="text-teal-800 font-bold mb-2">${kategorie.kategorie}:</p>
                     <ul class="text-sm text-gray-700 space-y-1">
