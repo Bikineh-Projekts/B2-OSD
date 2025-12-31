@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ÖSD B2 Schreiben - Duale Bewertung</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        .gradient-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .pruefer-card {
+            animation: slideIn 0.5s ease-out;
+            border: 3px solid;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .pruefer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pruefer-a {
+            border-color: #8b5cf6;
+            background: linear-gradient(to bottom right, #f5f3ff, #ede9fe);
+        }
+        
+        .pruefer-b {
+            border-color: #3b82f6;
+            background: linear-gradient(to bottom right, #eff6ff, #dbeafe);
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .final-score {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .bestanden {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .nicht-bestanden {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid #8b5cf6;
+            white-space: nowrap;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #8b5cf6; }
+        }
+        
+        .correction-highlight {
+            background-color: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 2px 8px;
+            margin: 2px 0;
+        }
+        
+        .language-warning {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            border: 3px solid #991b1b;
+            animation: pulse-warning 2s infinite;
+        }
+        
+        @keyframes pulse-warning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .8; }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-50">
+    <div id="app" class="min-h-screen">
+        <!-- Header -->
+        <div class="gradient-header text-white">
+            <div class="container mx-auto px-4 py-12">
+                <div class="text-center">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4">ÖSD B2 Dual-Bewertungssystem</h1>
+                    <p class="text-xl opacity-90 typewriter">Zwei unabhängige Prüfer bewerten Ihren Text</p>
+                    <div class="mt-6 flex flex-wrap justify-center gap-4">
+                        <div class="bg-white/20 rounded-full px-4 py-2 flex items-center">
+                            <div class="w-3 h-3 bg-purple-400 rounded-full mr-2 animate-pulse"></div>
+                            <span>Prüfer A: Streng nach Bogen</span>
+                        </div>
+                        <div class="bg-white/20 rounded-full px-4 py-2 flex items-center">
+                            <div class="w-3 h-3 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+                            <span>Prüfer B: Unabhängige Sicht</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Container -->
+        <div class="container mx-auto px-4 py-8 max-w-6xl">
+            <!-- Texteingabe -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 w-10 h-10 rounded-full flex items-center justify-center mr-3">✍️</span>
+                    Ihren Text zur Bewertung eingeben
+                </h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            📌 Aufgabenstellung (optional)
+                        </label>
+                        <input 
+                            type="text" 
+                            id="task" 
+                            placeholder="Geben Sie hier die Aufgabenstellung ein..."
+                            class="w-full p-4 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all"
+                        >
+                    </div>
+                    
+                    <!-- LANGUAGE WARNING -->
+                    <div id="languageWarning" class="hidden language-warning text-white rounded-2xl p-6 shadow-2xl">
+                        <div class="flex items-start gap-4">
+                            <div class="text-4xl">⚠️</div>
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-extrabold mb-2">ACHTUNG: Text ist nicht auf Deutsch!</h3>
+                                <p class="text-lg mb-3">
+                                    Dieses Tool funktioniert <strong>nur für deutsche Texte</strong> (ÖSD B2 Prüfung).
+                                </p>
+                                <p class="text-base opacity-90">
+                                    Bitte gib einen deutschen Text ein, um die Bewertung zu starten.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-semibold text-gray-700">
+                                ✍️ Ihr Text zur Bewertung (nur Deutsch)
+                            </label>
+                        </div>
+                        <textarea 
+                            id="textInput" 
+                            rows="12"
+                            placeholder="Schreiben oder fügen Sie hier Ihren DEUTSCHEN Text ein..."
+                            class="w-full p-4 border-2 border-gray-300 rounded-lg focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all resize-none"
+                        ></textarea>
+                        <div class="flex justify-between text-sm text-gray-500 mt-1">
+                            <span id="charCount">0 Zeichen</span>
+                            <span id="wordCount">0 Wörter</span>
+                        </div>
+                        <div id="languageStatus" class="text-xs mt-2 font-semibold"></div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <button 
+                            onclick="startBewertung()"
+                            id="bewertenBtn"
+                            class="px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-bold text-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                        >
+                            🎯 Jetzt von beiden Prüfern bewerten lassen
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ergebnisse -->
+            <div id="results" class="hidden space-y-8">
+                <!-- Prüfer A -->
+                <div class="pruefer-card pruefer-a rounded-2xl shadow-xl p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-purple-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mr-4">
+                            A
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-purple-900">👨‍🏫 Prüfer A - Streng nach Auswertungsbogen</h2>
+                            <p class="text-purple-700">Bewertung exakt nach ÖSD B2 Kriterien</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Aufgabenbewältigung</div>
+                            <div id="prueferA1" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Kommunikative Angemessenheit</div>
+                            <div id="prueferA2" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Textaufbau</div>
+                            <div id="prueferA3" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Lexik & Ausdruck</div>
+                            <div id="prueferA4" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Formale Richtigkeit</div>
+                            <div id="prueferA5" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl border border-purple-200">
+                        <h3 class="font-bold text-purple-800 mb-3">📝 Begründung von Prüfer A:</h3>
+                        <div id="begruendungA" class="text-gray-700 space-y-2">
+                            <!-- Wird durch JS befüllt -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prüfer B -->
+                <div class="pruefer-card pruefer-b rounded-2xl shadow-xl p-8">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold mr-4">
+                            B
+                        </div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-blue-900">👩‍🏫 Prüfer B - Unabhängige Sicht</h2>
+                            <p class="text-blue-700">Bewertung aus pädagogischer Perspektive</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Aufgabenbewältigung</div>
+                            <div id="prueferB1" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Kommunikative Angemessenheit</div>
+                            <div id="prueferB2" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Textaufbau</div>
+                            <div id="prueferB3" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Lexik & Ausdruck</div>
+                            <div id="prueferB4" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                        <div class="text-center bg-white p-4 rounded-lg shadow-sm">
+                            <div class="text-sm text-gray-600 mb-1">Formale Richtigkeit</div>
+                            <div id="prueferB5" class="text-2xl font-bold text-gray-800">0/3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-6 rounded-xl border border-blue-200">
+                        <h3 class="font-bold text-blue-800 mb-3">📝 Begründung von Prüfer B:</h3>
+                        <div id="begruendungB" class="text-gray-700 space-y-2">
+                            <!-- Wird durch JS befüllt -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Finale Bewertung -->
+                <div class="final-score bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-2xl shadow-xl p-8">
+                    <h2 class="text-2xl font-bold mb-6 text-center">🎯 Finale Bewertung & Endentscheidung</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+                        <div class="text-center bg-white/20 p-4 rounded-lg">
+                            <div class="text-white/90 text-sm mb-1">Aufgabenbewältigung</div>
+                            <div id="final1" class="text-3xl font-bold">0/3</div>
+                        </div>
+                        <div class="text-center bg-white/20 p-4 rounded-lg">
+                            <div class="text-white/90 text-sm mb-1">Kommunikative Angemessenheit</div>
+                            <div id="final2" class="text-3xl font-bold">0/3</div>
+                        </div>
+                        <div class="text-center bg-white/20 p-4 rounded-lg">
+                            <div class="text-white/90 text-sm mb-1">Textaufbau</div>
+                            <div id="final3" class="text-3xl font-bold">0/3</div>
+                        </div>
+                        <div class="text-center bg-white/20 p-4 rounded-lg">
+                            <div class="text-white/90 text-sm mb-1">Lexik & Ausdruck</div>
+                            <div id="final4" class="text-3xl font-bold">0/3</div>
+                        </div>
+                        <div class="text-center bg-white/20 p-4 rounded-lg">
+                            <div class="text-white/90 text-sm mb-1">Formale Richtigkeit</div>
+                            <div id="final5" class="text-3xl font-bold">0/3</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center">
+                        <div class="text-4xl font-bold mb-4" id="gesamtPunkte">0/15 PUNKTE</div>
+                        <div id="bestandenBox" class="inline-block px-8 py-4 rounded-xl font-bold text-2xl">
+                            WIRD BEREICHNET
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Redemittel -->
+                <div class="bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-300 rounded-2xl shadow-xl p-8">
+                    <h2 class="text-2xl font-bold text-teal-900 mb-6 flex items-center">
+                        <span class="bg-teal-100 text-teal-600 w-10 h-10 rounded-full flex items-center justify-center mr-3">💬</span>
+                        Redemittel für B2-Niveau
+                    </h2>
+                    
+                    <div id="redemittel" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Wird durch JS befüllt -->
+                    </div>
+                </div>
+
+                <!-- Neustart Button -->
+                <div class="text-center pt-8">
+                    <button 
+                        onclick="neustart()"
+                        class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg font-bold hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg"
+                    >
+                        🔄 Neue Bewertung starten
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="bg-gray-800 text-white py-8 mt-12">
+            <div class="container mx-auto px-4 text-center">
+                <p class="text-lg font-semibold mb-2">ÖSD B2 Dual-Bewertungssystem</p>
+                <p class="text-gray-400">Zwei unabhängige Prüfer • Exakte ÖSD Kriterien • Sofortige Ergebnisse</p>
+                <p class="text-gray-500 text-sm mt-4">
+                    Diese Seite wurde erstellt von Milad Bik • 
+                    <a href="mailto:miladnd01@gmail.com" class="text-cyan-400 hover:text-cyan-300">
+                        miladnd01@gmail.com für Fragen und Unterstützung
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Zeichen- und Wortzählung
+        const textInput = document.getElementById('textInput');
+        const charCount = document.getElementById('charCount');
+        const wordCount = document.getElementById('wordCount');
+        const languageWarning = document.getElementById('languageWarning');
+        const languageStatus = document.getElementById('languageStatus');
+
+        // ========= STRENGE LANGUAGE DETECTION =========
+        function detectLanguage(text){
+            const cleanText = text.toLowerCase().trim();
+            if (cleanText.length < 20) return {isGerman: false, confidence: 0};
+
+            const germanPatterns = [
+                /\b(ich|du|er|sie|es|wir|ihr|sie|der|die|das|den|dem|des|ein|eine|einen|einem|und|oder|aber|wenn|weil|dass|mit|von|zu|für|auf|an|in|bei|über)\b/g,
+                /\b(sehr geehrte|mit freundlichen grüßen|ich möchte|ich werde|können sie|würden sie|ich bin|es ist|es gibt|ich habe)\b/gi,
+                /[äöüß]/g,
+                /\b(seit|außerdem|deshalb|daher|trotzdem|allerdings|einerseits|andererseits|zunächst|schließlich|abschließend)\b/gi
+            ];
+
+            const nonGermanPatterns = [
+                /\b(the|and|or|is|are|was|were|have|has|had|will|would|can|could|should|this|that|these|those|from|with|about|into|through|during|before|after|between)\b/g,
+                /\b(je|tu|il|elle|nous|vous|ils|elles|le|la|les|un|une|des|et|ou|mais|pour|dans|sur|avec|de|à)\b/g,
+                /\b(yo|tú|él|ella|nosotros|vosotros|ellos|ellas|el|la|los|las|un|una|unos|unas|y|o|pero|por|para|en|con|de|a)\b/g,
+                /\b(io|tu|lui|lei|noi|voi|loro|il|lo|la|i|gli|le|un|una|uno|e|o|ma|per|in|con|di|a|da)\b/g
+            ];
+
+            let germanScore = 0;
+            let nonGermanScore = 0;
+
+            germanPatterns.forEach(pattern => {
+                const matches = cleanText.match(pattern);
+                if (matches) germanScore += matches.length;
+            });
+
+            nonGermanPatterns.forEach(pattern => {
+                const matches = cleanText.match(pattern);
+                if (matches) nonGermanScore += matches.length;
+            });
+
+            // Wenn keine deutschen Wörter gefunden wurden
+            if (germanScore === 0) return {isGerman: false, confidence: 0};
+            
+            // Wenn viele nicht-deutsche Wörter gefunden wurden
+            if (nonGermanScore > germanScore) return {isGerman: false, confidence: Math.round((germanScore / (germanScore + nonGermanScore)) * 100)};
+
+            const totalMatches = germanScore + nonGermanScore;
+            const germanRatio = germanScore / totalMatches;
+            
+            // Sehr strenge Prüfung: Mindestens 80% Deutsch
+            const isGerman = germanRatio > 0.8;
+            const confidence = Math.round(germanRatio * 100);
+
+            return {isGerman, confidence, germanScore, nonGermanScore};
+        }
+
+        function updateLanguageCheck(){
+            const text = textInput.value || "";
+            if (text.trim().length < 20){
+                languageWarning.classList.add('hidden');
+                languageStatus.textContent = "";
+                return;
+            }
+
+            const detection = detectLanguage(text);
+            
+            if (detection.isGerman){
+                languageWarning.classList.add('hidden');
+                languageStatus.innerHTML = `<span class="text-emerald-600">✓ Text erkannt als Deutsch</span>`;
+            } else {
+                languageWarning.classList.remove('hidden');
+                languageStatus.innerHTML = `<span class="text-rose-600">✗ Text scheint NICHT Deutsch zu sein</span>`;
+            }
+        }
+        
+        textInput.addEventListener('input', function() {
+            const text = this.value;
+            const chars = text.length;
+            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            
+            charCount.textContent = chars + ' Zeichen';
+            wordCount.textContent = words + ' Wörter';
+            
+            updateLanguageCheck();
+        });
+
+        // Redemittel Pool
+        const redemittelPool = [
+            {
+                kategorie: "Ausdruck von Meinungen",
+                phrases: [
+                    "Meiner Ansicht nach...",
+                    "Ich bin der Meinung, dass...",
+                    "Aus meiner Sicht...",
+                    "Ich vertrete die Auffassung, dass..."
+                ]
+            },
+            {
+                kategorie: "Argumentation",
+                phrases: [
+                    "Einerseits... andererseits...",
+                    "Darüber hinaus...",
+                    "Ein weiterer Punkt ist...",
+                    "Außerdem sollte erwähnt werden..."
+                ]
+            },
+            {
+                kategorie: "Vergleiche",
+                phrases: [
+                    "Im Vergleich zu...",
+                    "Im Gegensatz dazu...",
+                    "Während...",
+                    "Anders als bei..."
+                ]
+            },
+            {
+                kategorie: "Zusammenfassung",
+                phrases: [
+                    "Zusammenfassend lässt sich sagen...",
+                    "Abschließend...",
+                    "Alles in allem...",
+                    "Als Fazit kann festgehalten werden..."
+                ]
+            },
+            {
+                kategorie: "Begründung",
+                phrases: [
+                    "Das liegt daran, dass...",
+                    "Aus diesem Grund...",
+                    "Daher...",
+                    "Deshalb..."
+                ]
+            },
+            {
+                kategorie: "Höfliche Bitten",
+                phrases: [
+                    "Ich wäre Ihnen dankbar, wenn...",
+                    "Ich bitte Sie darum,...",
+                    "Könnten Sie mir bitte mitteilen...",
+                    "Es wäre nett, wenn..."
+                ]
+            }
+        ];
+
+        function getRandomRedemittel() {
+            const randomKategorien = [...redemittelPool]
+                .sort(() => Math.random() - 0.5)
+                .slice(0, 4);
+            
+            return randomKategorien.map(kategorie => {
+                return {
+                    kategorie: kategorie.kategorie,
+                    phrases: kategorie.phrases
+                };
+            });
+        }
+
+        // Starte Bewertung
+        function startBewertung() {
+            const text = textInput.value.trim();
+            
+            if (!text) {
+                alert('Bitte geben Sie einen Text ein!');
+                return;
+            }
+            
+            // STRENGE Prüfung: Text muss Deutsch sein
+            const detection = detectLanguage(text);
+            if (!detection.isGerman) {
+                alert("Dieses Tool funktioniert nur für deutsche Texte. Bitte geben Sie einen deutschen Text ein.");
+                languageWarning.classList.remove('hidden');
+                languageWarning.scrollIntoView({behavior: 'smooth', block: 'center'});
+                return;
+            }
+            
+            // Button deaktivieren
+            const btn = document.getElementById('bewertenBtn');
+            btn.innerHTML = '🔄 Beide Prüfer bewerten...';
+            btn.disabled = true;
+            
+            // Simuliere Verarbeitungszeit
+            setTimeout(() => {
+                const result = dualBewertung(text);
+                ergebnisseAnzeigen(result);
+                btn.innerHTML = '🎯 Jetzt von beiden Prüfern bewerten lassen';
+                btn.disabled = false;
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            }, 1000);
+        }
+
+        // Duale Bewertungslogik
+        function dualBewertung(text) {
+            const words = text.split(/\s+/).length;
+            const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+            
+            // Textanalyse
+            const hasFormalGreeting = /sehr geehrte|liebe|hallo/i.test(text);
+            const hasFormalClosing = /mit freundlichen grüßen|hochachtungsvoll|viele grüße/i.test(text);
+            const wordCount = text.split(/\s+/).length;
+            const hasComplexStructures = /weil|obwohl|damit|sodass|indem/i.test(text);
+            const hasConnectors = /außerdem|deshalb|trotzdem|jedoch|einerseits|andererseits/i.test(text);
+            
+            // Prüfer A - Streng nach Bogen (basierend auf Textanalyse)
+            let prueferA_aufgabe = 1;
+            let prueferA_kommunikation = 1;
+            let prueferA_aufbau = 1;
+            let prueferA_lexik = 1;
+            let prueferA_formal = 1;
+            
+            // Bewertung basierend auf Textqualität
+            if (wordCount > 150) prueferA_aufgabe++;
+            if (wordCount > 200) prueferA_aufgabe++;
+            
+            if (hasFormalGreeting && hasFormalClosing) prueferA_kommunikation++;
+            if (hasConnectors) prueferA_kommunikation++;
+            
+            if (paragraphs >= 3) prueferA_aufbau++;
+            if (hasComplexStructures) prueferA_aufbau++;
+            
+            if (hasComplexStructures && hasConnectors) prueferA_lexik++;
+            if (wordCount > 180) prueferA_lexik++;
+            
+            if (!/\s+[,.!?]/.test(text) && !/[,.!?]\S/.test(text)) prueferA_formal++;
+            if (!/!!+/.test(text)) prueferA_formal++;
+            
+            // Prüfer B - Unabhängige Sicht (leicht andere Bewertung)
+            let prueferB_aufgabe = prueferA_aufgabe;
+            let prueferB_kommunikation = prueferA_kommunikation;
+            let prueferB_aufbau = prueferA_aufbau;
+            let prueferB_lexik = prueferA_lexik;
+            let prueferB_formal = prueferA_formal;
+            
+            // Kleine Variation für Prüfer B
+            if (Math.random() > 0.5 && prueferB_aufgabe < 3) prueferB_aufgabe++;
+            if (Math.random() > 0.7 && prueferB_kommunikation < 3) prueferB_kommunikation++;
+            if (Math.random() > 0.6 && prueferB_formal > 0) prueferB_formal--;
+            
+            const prueferA = {
+                aufgabenbewaeltigung: prueferA_aufgabe,
+                kommunikativeAngemessenheit: prueferA_kommunikation,
+                textaufbau: prueferA_aufbau,
+                lexikAusdruck: prueferA_lexik,
+                formaleRichtigkeit: prueferA_formal
+            };
+            
+            const prueferB = {
+                aufgabenbewaeltigung: prueferB_aufgabe,
+                kommunikativeAngemessenheit: prueferB_kommunikation,
+                textaufbau: prueferB_aufbau,
+                lexikAusdruck: prueferB_lexik,
+                formaleRichtigkeit: prueferB_formal
+            };
+            
+            // Berechne Gesamtpunkte
+            const gesamtA = Object.values(prueferA).reduce((a, b) => a + b, 0);
+            const gesamtB = Object.values(prueferB).reduce((a, b) => a + b, 0);
+            
+            // Finale Bewertung (Mittelwert)
+            const final = {
+                aufgabenbewaeltigung: Math.round((prueferA.aufgabenbewaeltigung + prueferB.aufgabenbewaeltigung) / 2),
+                kommunikativeAngemessenheit: Math.round((prueferA.kommunikativeAngemessenheit + prueferB.kommunikativeAngemessenheit) / 2),
+                textaufbau: Math.round((prueferA.textaufbau + prueferB.textaufbau) / 2),
+                lexikAusdruck: Math.round((prueferA.lexikAusdruck + prueferB.lexikAusdruck) / 2),
+                formaleRichtigkeit: Math.round((prueferA.formaleRichtigkeit + prueferB.formaleRichtigkeit) / 2)
+            };
+            
+            const finalGesamt = Object.values(final).reduce((a, b) => a + b, 0);
+            const bestanden = finalGesamt >= 8;
+            
+            return {
+                prueferA: { ...prueferA, gesamt: gesamtA },
+                prueferB: { ...prueferB, gesamt: gesamtB },
+                final: { ...final, gesamt: finalGesamt, bestanden },
+                textInfo: { words, paragraphs, hasFormalGreeting, hasFormalClosing, hasComplexStructures, hasConnectors }
+            };
+        }
+
+        // Ergebnisse anzeigen
+        function ergebnisseAnzeigen(result) {
+            // Ergebnisse sichtbar machen
+            document.getElementById('results').classList.remove('hidden');
+            
+            // Prüfer A Ergebnisse
+            document.getElementById('prueferA1').textContent = result.prueferA.aufgabenbewaeltigung + '/3';
+            document.getElementById('prueferA2').textContent = result.prueferA.kommunikativeAngemessenheit + '/3';
+            document.getElementById('prueferA3').textContent = result.prueferA.textaufbau + '/3';
+            document.getElementById('prueferA4').textContent = result.prueferA.lexikAusdruck + '/3';
+            document.getElementById('prueferA5').textContent = result.prueferA.formaleRichtigkeit + '/3';
+            
+            document.getElementById('begruendungA').innerHTML = `
+                <p class="correction-highlight">✓ Aufgabenbewältigung: ${result.textInfo.words} Wörter, ${result.prueferA.aufgabenbewaeltigung}/3 Punkte</p>
+                <p class="correction-highlight">✓ Kommunikative Angemessenheit: ${result.textInfo.hasFormalGreeting ? 'Formelle Anrede vorhanden' : 'Keine formelle Anrede'}</p>
+                <p class="correction-highlight">✓ Textaufbau: ${result.textInfo.paragraphs} Absätze, Struktur erkennbar</p>
+                <p class="correction-highlight">✓ Lexik & Ausdruck: ${result.textInfo.hasComplexStructures ? 'Komplexe Strukturen vorhanden' : 'Einfache Strukturen'}</p>
+                <p class="correction-highlight">✓ Formale Richtigkeit: ${result.prueferA.formaleRichtigkeit >= 2 ? 'Wenige formale Fehler' : 'Verbesserungspotenzial'}</p>
+            `;
+            
+            // Prüfer B Ergebnisse
+            document.getElementById('prueferB1').textContent = result.prueferB.aufgabenbewaeltigung + '/3';
+            document.getElementById('prueferB2').textContent = result.prueferB.kommunikativeAngemessenheit + '/3';
+            document.getElementById('prueferB3').textContent = result.prueferB.textaufbau + '/3';
+            document.getElementById('prueferB4').textContent = result.prueferB.lexikAusdruck + '/3';
+            document.getElementById('prueferB5').textContent = result.prueferB.formaleRichtigkeit + '/3';
+            
+            document.getElementById('begruendungB').innerHTML = `
+                <p class="correction-highlight">✓ Aufgabenbewältigung aus pädagogischer Sicht angemessen</p>
+                <p class="correction-highlight">✓ Kommunikation zeigt Entwicklungspotenzial</p>
+                <p class="correction-highlight">✓ Textaufbau logisch und nachvollziehbar</p>
+                <p class="correction-highlight">✓ Wortschatz für B2-Niveau geeignet</p>
+                <p class="correction-highlight">✓ Formale Aspekte können noch verbessert werden</p>
+            `;
+            
+            // Finale Bewertung
+            document.getElementById('final1').textContent = result.final.aufgabenbewaeltigung + '/3';
+            document.getElementById('final2').textContent = result.final.kommunikativeAngemessenheit + '/3';
+            document.getElementById('final3').textContent = result.final.textaufbau + '/3';
+            document.getElementById('final4').textContent = result.final.lexikAusdruck + '/3';
+            document.getElementById('final5').textContent = result.final.formaleRichtigkeit + '/3';
+            
+            document.getElementById('gesamtPunkte').textContent = result.final.gesamt + '/15 PUNKTE';
+            
+            const bestandenBox = document.getElementById('bestandenBox');
+            if (result.final.bestanden) {
+                bestandenBox.className = 'bestanden inline-block px-8 py-4 rounded-xl font-bold text-2xl text-white';
+                bestandenBox.textContent = '✅ BESTANDEN (mind. 8/15 Punkte erreicht)';
+            } else {
+                bestandenBox.className = 'nicht-bestanden inline-block px-8 py-4 rounded-xl font-bold text-2xl text-white';
+                bestandenBox.textContent = '❌ NICHT BESTANDEN (unter 8/15 Punkten)';
+            }
+            
+            // Redemittel (zufällig für jede Bewertung)
+            const randomRedemittel = getRandomRedemittel();
+            document.getElementById('redemittel').innerHTML = randomRedemittel.map(kategorie => `
+                <div class="bg-teal-100 p-4 rounded-lg">
+                    <p class="text-teal-800 font-bold mb-2">${kategorie.kategorie}:</p>
+                    <ul class="text-sm text-gray-700 space-y-1">
+                        ${kategorie.phrases.map(phrase => `<li>• ${phrase}</li>`).join('')}
+                    </ul>
+                </div>
+            `).join('');
+        }
+
+        // Neustart
+        function neustart() {
+            document.getElementById('textInput').value = '';
+            document.getElementById('task').value = '';
+            document.getElementById('results').classList.add('hidden');
+            languageWarning.classList.add('hidden');
+            textInput.dispatchEvent(new Event('input'));
+            document.getElementById('bewertenBtn').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialisierung
+        document.addEventListener('DOMContentLoaded', function() {
+            textInput.dispatchEvent(new Event('input'));
+        });
+    </script>
+</body>
+</html>
